@@ -4,7 +4,9 @@
       <div class="flex justify-between">
         <h1 class="text-4xl font-bold text-center flex-1">Search Recipes</h1>
         <!-- Search button -->
-        <search-recipe-modal></search-recipe-modal>
+        <search-recipe-modal
+          @onSearchRecipes="onSearchRecipes"
+        ></search-recipe-modal>
       </div>
 
       <!-- Recipes Grid -->
@@ -71,10 +73,19 @@
       <div class="text-center py-4">
         <button
           @click="loadMoreRecipes"
+          v-if="pagination.nextPage"
           class="py-3 px-8 rounded-full border-2 border-dark-blue text-dark-blue"
         >
           Load More
         </button>
+      </div>
+
+      <!-- If no recipes found -->
+      <div v-if="recipes.length == 0">
+        <h2 class="text-center font-bold text-2xl">
+          Sorry, we couldn't find any recipes that match your search. Please try
+          again with a different search term.
+        </h2>
       </div>
     </div>
     <!-- Recipe Details Component -->
@@ -109,6 +120,11 @@ export default {
       recipesPerPage: recipesUtilService.RECIPES_PER_PAGE,
       viewedRecipeId: null,
       isShowRecipeDetails: false,
+      pagination: {
+        currentPage: 1,
+        nextPage: null,
+        totalItems: 0,
+      },
     };
   },
   components: {
@@ -140,12 +156,20 @@ export default {
         .then((res) => {
           if (res.success) {
             self.recipes = res.data?.recipes || [];
+            self.pagination.currentPage = res.data.meta.current_page;
+            self.pagination.nextPage = res.data.meta.next_page;
+            self.pagination.totalItems = res.data.meta.total_count;
           }
         })
         .catch((err) => {
           self.serverError =
             err.response?.data?.message || "Internal Server Error";
         });
+    },
+    onSearchRecipes(searchText) {
+      const self = this;
+      self.searchText = searchText;
+      self.getRecipes();
     },
     loadMoreRecipes() {
       const self = this;

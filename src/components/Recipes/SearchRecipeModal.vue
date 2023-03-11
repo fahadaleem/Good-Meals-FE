@@ -32,17 +32,20 @@
       </div>
       <!-- Search Textbox -->
       <div class="h-full flex flex-cols justify-center items-center">
-        <div class="w-3/4 mx-auto">
-          <input
-            min="1"
-            type="text"
-            placeholder="Search Recipes"
-            class="py-3 px-4 box-shadow w-full block mx-auto rounded-full border-[1px] text-base border-neutral-300 my-2 outline-primary-color"
-          />
-          <label for="helptext" class="text-neutral-400"
-            >Type recipe name and press enter</label
-          >
-        </div>
+        <form @submit.prevent="onSearchRecipes" class="flex-1">
+          <div class="md:w-3/4 w-full mx-auto">
+            <input
+              min="1"
+              type="text"
+              v-model="searchText"
+              placeholder="Search Recipes"
+              class="py-3 px-4 box-shadow w-full block mx-auto rounded-full border-[1px] text-base border-neutral-300 my-2 outline-primary-color"
+            />
+            <label for="helptext" class="text-neutral-400"
+              >Type recipe name and press enter</label
+            >
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -50,10 +53,19 @@
 <script>
 export default {
   name: "search-recipe-modal",
+
   data() {
     return {
       isShowSearchModal: false,
+      searchText: "",
     };
+  },
+  methods: {
+    onSearchRecipes() {
+      const self = this;
+      self.isShowSearchModal = false;
+      self.$emit("onSearchRecipes", self.searchText);
+    },
   },
 };
 </script>
