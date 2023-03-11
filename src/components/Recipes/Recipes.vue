@@ -4,13 +4,7 @@
       <div class="flex justify-between">
         <h1 class="text-4xl font-bold text-center flex-1">Search Recipes</h1>
         <!-- Search button -->
-        <div>
-          <button
-            class="py-3 px-8 rounded-full border-2 border-dark-blue text-dark-blue"
-          >
-            Search
-          </button>
-        </div>
+        <search-recipe-modal></search-recipe-modal>
       </div>
 
       <!-- Recipes Grid -->
@@ -99,6 +93,7 @@ import { recipesUtilService } from "../../utils/recipesUtilService";
 
 // Components
 import RecipeDetails from "./RecipeDetails.vue";
+import SearchRecipeModal from "./SearchRecipeModal.vue";
 
 export default {
   name: "recipes",
@@ -118,6 +113,7 @@ export default {
   },
   components: {
     recipeDetails: RecipeDetails,
+    searchRecipeModal: SearchRecipeModal,
   },
   computed: {
     isValidImageUrl() {
