@@ -25,6 +25,9 @@ const store = createStore({
     handleLogout(state) {
       state.user = null;
     },
+    setUserMealPlan(state, mealPlan) {
+      state.user.meal_plan = mealPlan;
+    },
   },
   getters: {
     isUserLoggedIn(state) {

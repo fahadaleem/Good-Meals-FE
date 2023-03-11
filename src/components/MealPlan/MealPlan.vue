@@ -10,7 +10,7 @@
     </div>
     <div
       v-else
-      class="max-w-[1000px] h-screen mx-auto flex flex-col gap-y-8 justify-center items-center"
+      class="max-w-[1000px] mx-auto flex flex-col gap-y-8 justify-center items-center"
     >
       <h1 class="text-4xl font-bold">Meal Plan</h1>
       <div
@@ -176,11 +176,16 @@
         <button
           @click="onSaveMeal"
           :disabled="!isAllMealValuesEntered"
-          class="bg-primary-color w-48 rounded-full w-full py-3 px-8 text-neutral-100 disabled:bg-neutral-400"
+          class="bg-primary-color w-48 rounded-full py-3 px-8 text-neutral-100 disabled:bg-neutral-400"
         >
           Save your meal
         </button>
       </div>
+      <toast-notification
+        v-if="serverResponse.message"
+        :message="serverResponse.message"
+        :type="serverResponse.success ? 'success' : 'error'"
+      ></toast-notification>
     </div>
   </div>
 </template>
@@ -191,6 +196,7 @@ import { apiUtilService } from "../../utils/apiUtilService";
 import lodashCloneDeep from "lodash/cloneDeep";
 
 import SelectRecipeModal from "./SelectRecipeModal.vue";
+import ToastNotification from "../ToastNotification.vue";
 export default {
   name: "meal-plan",
   data() {
@@ -200,16 +206,19 @@ export default {
       mealPlan: {},
       userNutritionDetails: {},
       isShowModal: false,
+      serverResponse: {
+        message: "",
+        success: false,
+      },
     };
   },
   components: {
     selectRecipeModal: SelectRecipeModal,
+    toastNotification: ToastNotification,
   },
   created() {
     const self = this;
-    self.userNutritionDetails = self.$store.state.user.nutrition_details;
-
-    self.mapNumberOfMeals();
+    self.mapMealPlan();
   },
   computed: {
     totalMealCalories() {
@@ -244,6 +253,14 @@ export default {
       const self = this;
       for (let i = 1; i <= self.$store.getters.getUserNumberOfMeals; i++) {
         self.mealPlan[i] = [];
+      }
+    },
+    mapMealPlan() {
+      const self = this;
+      if (!self.$store.state.user.meal_plan) {
+        self.mapNumberOfMeals();
+      } else {
+        self.mealPlan = Object.assign({}, self.$store.state.user.meal_plan);
       }
     },
     onAddItem(mealNumber, type) {
@@ -320,8 +337,16 @@ export default {
         })
         .then((res) => {
           if (res.success) {
-            console.log(res);
+            self.serverResponse.message = res.message;
+            self.serverResponse.success = res.success;
+
+            // set updated meal plan to store
+            self.$store.commit("setUserMealPlan", res.data);
           }
+        })
+        .catch((err) => {
+          self.serverResponse.message = err.response.data.message;
+          self.serverResponse.success = false;
         });
     },
     toggleModalState() {

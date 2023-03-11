@@ -168,7 +168,7 @@ export default {
       // save users data
       const self = this;
       self.handleSubmitNutritionDetails().then((res) => {
-        if (res.status) {
+        if (res.success) {
           self.$router.push("/payment");
         }
       });
