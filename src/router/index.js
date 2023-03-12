@@ -10,6 +10,7 @@ const router = createRouter({
       name: "home",
       component: HomeView,
     },
+
     {
       path: "/about",
       name: "about",
@@ -50,6 +51,12 @@ const router = createRouter({
       path: "/recipes",
       name: "recipes",
       component: () => import("../views/RecipesView.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/subscription-plans",
+      name: "subscription-plans",
+      component: () => import("../views/SubscriptionPlansView.vue"),
       meta: { requiresAuth: true },
     },
     {

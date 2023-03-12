@@ -38,7 +38,6 @@
                 />
               </div>
 
-              <!-- Card Information -->
               <div>
                 <label
                   for="card-information"
@@ -46,41 +45,19 @@
                   >Card Information</label
                 >
                 <div class="flex flex-col">
-                  <div class="flex-1 relative">
-                    <input
-                      type="text"
-                      v-model="formattedCardNumber"
-                      @input="onInputCardInformation($event, 'cardNumber')"
-                      maxlength="19"
-                      placeholder="Card Number"
-                      class="py-4 pl-4 pr-12 w-full box-shadow rounded-full border-[1px] text-base border-neutral-300 my-2 outline-primary-color"
-                    />
-                    <i
-                      class="absolute text-2xl right-[20px] top-[20px]"
-                      :class="
-                        creditCardType
-                          ? 'fa-brands fa-cc-' + creditCardType
-                          : 'fa solid fa-credit-card'
-                      "
-                    ></i>
-                  </div>
-                  <div class="flex-1 flex gap-x-4">
-                    <input
-                      type="text"
-                      v-model="formattedExpiry"
-                      @input="onInputCardInformation($event, 'expiry')"
-                      placeholder="MM/YY"
-                      maxlength="5"
-                      class="p-4 w-full box-shadow rounded-full border-[1px] text-base border-neutral-300 my-2 outline-primary-color"
-                    />
-                    <input
-                      type="text"
-                      placeholder="CVV"
-                      v-model="cvv"
-                      maxlength="3"
-                      @input="onInputCardInformation($event, 'cvv')"
-                      class="p-4 w-full box-shadow rounded-full border-[1px] text-base border-neutral-300 my-2 outline-primary-color"
-                    />
+                  <div
+                    class="flex-1 relative p-4 border-[1px] border-neutral-300 rounded-full box-shadow"
+                    id="card-number"
+                  ></div>
+                  <div class="flex gap-x-2">
+                    <div
+                      class="flex-1 p-4 w-full box-shadow rounded-full border-[1px] text-base border-neutral-300 my-2"
+                      id="card-expiry"
+                    ></div>
+                    <div
+                      class="flex-1 flex-1 p-4 w-full box-shadow rounded-full border-[1px] text-base border-neutral-300 my-2"
+                      id="card-cvc"
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -114,19 +91,13 @@
   </div>
 </template>
 <script>
-import lodashCloneDeep from "lodash/cloneDeep";
-import { paymentUtilService } from "../../utils/paymentUtilService";
 export default {
   name: "Payment Form",
   data() {
     return {
       email: "",
-      cardNumber: "",
-      expiry: "",
-      cvv: "",
       nameOnCard: "",
-      showCardIcon: false,
-      cardType: "",
+      stripe: null,
     };
   },
   created() {
@@ -134,81 +105,26 @@ export default {
     // set user email
     self.email = self.$store.state.user.email;
   },
-  computed: {
-    isCardValid() {
-      const self = this;
-      return (
-        paymentUtilService.validateCardNumber(self.cardNumber) &&
-        paymentUtilService.validateCardExpiry(self.expiry) &&
-        paymentUtilService.validateCvvValid(self.cvv) &&
-        !!self.nameOnCard
-      );
-    },
-    formattedExpiry() {
-      const self = this;
-      return self.expiry.length === 2 && !this.expiry.includes("/")
-        ? (self.expiry += "/")
-        : self.expiry;
-    },
-    formattedCardNumber: {
-      get: function () {
-        const self = this;
-        const cardNumber = lodashCloneDeep(self.cardNumber);
-        const formatted = cardNumber
-          .replace(/\s/g, "")
-          .replace(/(\d{4})/g, "$1 ");
-        return formatted.trim();
-      },
-      set: function (newValue) {
-        const self = this;
-        self.cardNumber = newValue;
-      },
-    },
-    creditCardType() {
-      const self = this;
-      const visaRegEx = /^4[0-9]{12}(?:[0-9]{3})?$/;
-      const amexRegEx = /^3[47][0-9]{13}$/;
-      const discoverRegEx = /^6(?:011|5[0-9]{2})[0-9]{12}$/;
-      const mastercardRegEx = /^5[1-5][0-9]{14}$/;
+  mounted() {
+    const self = this;
+    // Set your publishable key: remember to change this to your live publishable key in production
+    // See your keys here: https://dashboard.stripe.com/apikeys
+    self.stripe = Stripe(
+      "pk_test_51I9Be8GOXbatF6xOvpLtGTkJ2l9gVXXR0jjSMCS8dRKZ2lQ09fHjuf8gOZjYaHGsRgSo8LCxaoJLWXiu2bsnpbRB00aEn9C693"
+    );
+    var elements = self.stripe.elements();
 
-      const cardNumber = self.cardNumber.replace(/[^\d]/g, "");
-      if (visaRegEx.test(cardNumber)) {
-        self.cardType = "visa";
-        return "visa";
-      } else if (amexRegEx.test(cardNumber)) {
-        self.cardType = "amex";
-        return "amex"; // american express
-      } else if (discoverRegEx.test(cardNumber)) {
-        self.cardType = "discovery";
-        return "discover";
-      } else if (mastercardRegEx.test(cardNumber)) {
-        self.cardType = "mastercard";
-        return "mastercard";
-      } else {
-        self.cardType = "";
-        return null; // default card Icon
-      }
-    },
+    var cardNumber = elements.create("cardNumber");
+    var cardExpiry = elements.create("cardExpiry");
+    var cardCvc = elements.create("cardCvc");
+
+    cardNumber.mount("#card-number");
+    cardExpiry.mount("#card-expiry");
+    cardCvc.mount("#card-cvc");
   },
+  computed: {},
   methods: {
-    submitForm() {
-      console.log("Payment process success!");
-    },
-    inputCardNumber(e) {
-      const self = this;
-      const numericRegex = /[^\d]/g;
-      self.cardNumber = e.target.value.replace(numericRegex, "");
-    },
-    inputExpiry(e) {
-      const self = this;
-      const numericRegex = /[^\d]/g;
-      self.expiry = e.target.value.replace(numericRegex, "");
-    },
-    onInputCardInformation(e, field) {
-      const self = this;
-      const numericRegex = /[^\/\d]/g;
-      self[field] = e.target.value.replace(numericRegex, "");
-    },
+    submitForm() {},
   },
 };
 </script>
