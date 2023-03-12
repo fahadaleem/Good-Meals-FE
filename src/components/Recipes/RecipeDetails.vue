@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-[600px] mx-auto h-full rounded-[30px] overflow-hidden">
+  <div class="max-w-[600px] mx-auto rounded-[30px] overflow-hidden">
     <!-- Recipe image -->
     <div class="h-[300px] rounded-[30px] overflow-hidden relative">
       <button
@@ -125,6 +125,50 @@
           </div>
         </div>
       </div>
+
+      <!-- Ingredients and instructions note -->
+      <div class="my-12">
+        <div class="flex rounded-lg overflow-hidden shadow-sm" role="group">
+          <button
+            type="button"
+            @click="selectedTab = 'ingredients'"
+            class="px-4 py-2 font-bold text-lg border border-gray-200 flex-1"
+            :class="
+              selectedTab === 'ingredients'
+                ? 'bg-primary text-neutral-100'
+                : 'bg-neutral-100'
+            "
+          >
+            Ingredients
+          </button>
+          <button
+            type="button"
+            @click="selectedTab = 'instructions'"
+            class="px-4 py-2 font-bold text-lg flex-1 bg-white"
+            :class="
+              selectedTab === 'instructions'
+                ? 'bg-primary text-neutral-100'
+                : 'bg-neutral-100'
+            "
+          >
+            Instructions
+          </button>
+        </div>
+
+        <!-- Ingredients Tab -->
+        <div v-if="selectedTab === 'ingredients'" class="py-4">
+          <h2 class="font-bold text-xl">Ingredients</h2>
+          <div class="bg-neutral-100 p-4">
+            <ul class="list-disc p-4" v-html="parseIngredients"></ul>
+          </div>
+        </div>
+        <div v-if="selectedTab === 'instructions'" class="py-4">
+          <h2 class="font-bold text-xl">Instructions</h2>
+          <div class="bg-neutral-100 p-4">
+            <ul class="list-disc p-4" v-html="parseInstructions"></ul>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -140,8 +184,10 @@ export default {
   data() {
     return {
       recipeDetails: {},
+      selectedTab: "ingredients", // either ingredients or instructions
     };
   },
+
   computed: {
     isRecipeSelected() {
       const self = this;
@@ -150,16 +196,73 @@ export default {
         self.recipeDetails?.recipe
       );
     },
+    parseIngredients() {
+      const self = this;
+      if (!self.recipeDetails.ingredients) {
+        return "";
+      }
+      // Split the text into lines
+      const lines = self.recipeDetails.ingredients.split("\\n");
+
+      // Initialize an empty list
+      const ingredients = [];
+
+      // Iterate over the lines and add them as list items
+      for (let i = 0; i < lines.length; i++) {
+        // Remove any leading or trailing whitespace
+        const line = lines[i].trim();
+
+        // Ignore any empty lines
+        if (line.length === 0) {
+          continue;
+        }
+
+        // Add the line as a list item
+        ingredients.push(`<li>${line}</li>`);
+      }
+
+      return ingredients.join("");
+    },
+
+    parseInstructions() {
+      const self = this;
+      if (!self.recipeDetails.directions) {
+        return "";
+      }
+      // Split the text into lines
+      const lines = self.recipeDetails.directions.split("\\n");
+
+      // Initialize an empty list
+      const instructions = [];
+
+      // Iterate over the lines and add them as list items
+      for (let i = 0; i < lines.length; i++) {
+        // Remove any leading or trailing whitespace
+        const line = lines[i].trim();
+
+        // Ignore any empty lines
+        if (line.length === 0) {
+          continue;
+        }
+
+        // Add the line as a list item
+        instructions.push(`<li>${line}</li>`);
+      }
+      console.log();
+      return instructions.join("");
+    },
   },
   created() {
     const self = this;
     self.fetchRecipeDetails();
   },
+
   methods: {
     onCloseDetailPage() {
       const self = this;
       self.$emit("onCloseRecipeDetails");
     },
+
     onSelectRecipe() {
       const self = this;
       self.$emit("onSelectRecipe", self.recipeDetails);
